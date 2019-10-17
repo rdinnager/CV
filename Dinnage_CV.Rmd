@@ -1,0 +1,86 @@
+---
+name: Russell
+surname: Dinnage
+position: "Research Fellow"
+address: "Institute of Applied Ecology, University of Canberra"
+phone: +61481554078
+www: www.mepheo.science
+email: "r.dinnage@gmail.com"
+twitter: ecologician
+github: rdinnager
+linkedin: 
+date: "`r format(Sys.time(), '%B %Y')`"
+output: vitae::moderncv
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+library(vitae)
+```
+
+# Some stuff about me
+
+ * I poisoned myself doing research.
+ * I was the first woman to win a Nobel prize
+ * I was the first person and only woman to win a Nobel prize in two different sciences.
+
+# Education
+
+```{r}
+library(tibble)
+tribble(
+  ~ Degree, ~ Year, ~ Institution, ~ Where,
+  "Informal studies", "1889-91", "Flying University", "Warsaw, Poland",
+  "Master of Physics", "1893", "Sorbonne Université", "Paris, France",
+  "Master of Mathematics", "1894", "Sorbonne Université", "Paris, France"
+) %>% 
+  detailed_entries(Degree, Year, Institution, Where)
+```
+
+# Nobel Prizes
+
+```{r}
+tribble(
+  ~Year, ~Type, ~Desc,
+  1903, "Physics", "Awarded for her work on radioactivity with Pierre Curie and Henri Becquerel",
+  1911, "Chemistry", "Awarded for the discovery of radium and polonium"
+) %>% 
+  brief_entries(
+    glue::glue("Nobel Prize in {Type}"),
+    Year, 
+    Desc
+  )
+```
+
+# Publications
+
+```{r}
+scholar_id <- "GU6p2KoAAAAJ"
+
+pubs <- scholar::get_publications(scholar_id) %>%
+  dplyr::mutate(author = author %>% 
+                  as.character %>% 
+                  stringr::str_trim(),
+                type = dplyr::case_when(
+                  journal == "bioRxiv" ~ "preprint",
+                  journal == "University of Toronto" ~ "thesis",
+                  TRUE ~ "peer-reviewed"
+                  )) %>%
+  dplyr::arrange(dplyr::desc(year))
+
+long_auth <- stringr::str_detect(pubs$author, "\\.\\.\\.")
+
+pubs$author[long_auth] <- purrr::map_chr(pubs$pubid[long_auth], ~ scholar::get_complete_authors(scholar_id, .))
+  
+pubs %>%
+  filter(type == "peer-reviewed") %>% 
+  distinct(title, .keep_all = TRUE) %>%
+  transmute(bibtype = "Article", author = as.character(author),
+            title = as.character(title),
+            journaltitle = as.character(journal), year, key = row_number()) %>% 
+  RefManageR::as.BibEntry() %>% 
+  RefManageR::WriteBib("dinnage.bib")
+
+bibliography_entries("dinnage.bib")
+```
+
