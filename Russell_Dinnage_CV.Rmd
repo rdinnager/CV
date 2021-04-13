@@ -3,20 +3,27 @@ name: Russell
 surname: Dinnage
 position: "Research Fellow"
 address: "Institute of Applied Ecology, University of Canberra"
-phone: +61481554078
+phone: "+61 4 8155 4078"
 www: www.mepheo.science
 email: "r.dinnage@gmail.com"
 twitter: ecologician
 github: rdinnager
 linkedin: 
 date: "`r format(Sys.time(), '%B %Y')`"
-output: vitae::moderncv
+output: 
+  vitae::moderncv:
+    latex_engine: xelatex
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 library(vitae)
 library(dplyr)
+library(glue)
+library(stringr)
+library(rorcid)
+library(purrr)
+library(rAltmetric)
 ```
 
 # Some stuff about me
@@ -57,31 +64,54 @@ tribble(
 
 ```{r}
 scholar_id <- "GU6p2KoAAAAJ"
+orcid_id <- "0000-0003-0846-2819"
+
+works <- works(orcid_id) 
+  
+works <- works %>%
+  as_tibble() %>%
+  select(`title.title.value`, `journal-title.value`,
+         `external-ids.external-id`) %>%
+  dplyr::distinct(`title.title.value`, `journal-title.value`,
+                  .keep_all = TRUE) %>%
+  mutate(doi = map(`external-ids.external-id`, ~ .x %>%
+                     filter(`external-id-type` == "doi") %>%
+                     pull(`external-id-value`)) 
+         ) %>%
+  mutate(doi = modify_if(doi, ~ length(.x) == 0, ~NA_character_) %>%
+           flatten_chr())
+
+alts <- altmetrics(doi = works$doi[1])
 
 pubs <- scholar::get_publications(scholar_id) %>%
   dplyr::mutate(author = author %>% 
                   as.character %>% 
-                  stringr::str_trim(),
+                  str_conv("UTF-8") %>%
+                  str_trim(),
                 type = dplyr::case_when(
                   journal == "bioRxiv" ~ "preprint",
                   journal == "University of Toronto" ~ "thesis",
+                  journal == "" ~ "thesis",
                   TRUE ~ "peer-reviewed"
-                  )) %>%
+                  ),
+                number = ifelse(number == "", "In Press", number)) %>%
   dplyr::arrange(dplyr::desc(year))
 
 long_auth <- stringr::str_detect(pubs$author, "\\.\\.\\.")
 
 pubs$author[long_auth] <- purrr::map_chr(pubs$pubid[long_auth], ~ scholar::get_complete_authors(scholar_id, .))
   
-pubs %>%
-  filter(type == "peer-reviewed") %>% 
-  distinct(title, .keep_all = TRUE) %>%
-  transmute(bibtype = "Article", author = as.character(author),
-            title = as.character(title),
-            journaltitle = as.character(journal), year, key = row_number()) %>% 
-  RefManageR::as.BibEntry() %>% 
-  RefManageR::WriteBib("dinnage.bib")
+pubs$title[!tolower(pubs$title) %in% tolower(works$title.title.value)]
 
-bibliography_entries("dinnage.bib")
+peer_reviewed <- pubs %>%
+  filter(type == "peer-reviewed") %>% 
+  distinct(title, .keep_all = TRUE)
+
+peer_reviewed %>%
+  brief_entries(what = glue("{author} ({year}). {title}. \\textit{{{journal}}}"),
+                when = year,
+                with = glue("\n\\textbf{{Google Scholar Citations:}} {cites}; Altmetric Score: "),
+                .protect = FALSE)
+
 ```
 
