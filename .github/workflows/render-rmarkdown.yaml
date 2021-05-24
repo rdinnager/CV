@@ -3,7 +3,7 @@ on:
 
 jobs:
   build:
-    runs-on: macOS-latest
+    runs-on: windows-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       ORCID_TOKEN: ${{ secrets.ORCID_TOKEN }}
