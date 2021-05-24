@@ -31,7 +31,11 @@ jobs:
           path: renv
           key: r-${{ hashFiles('renv.lock') }}
           restore-keys: r-
-
+          
+      - name: Try just restoring the renv
+        run: |
+          Rscript -e 'renv:restore()'
+          
       - name: Render CV Rmarkdown file in capsule
         run: |
           Rscript -e 'capsule::run_callr(function() rmarkdown::render("Russell_Dinnage_CV.Rmd"))'  
