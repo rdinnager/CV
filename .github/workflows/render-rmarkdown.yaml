@@ -36,6 +36,13 @@ jobs:
         run: |
           Rscript -e 'capsule::run_callr(function() rmarkdown::render("Russell_Dinnage_CV.Rmd"))'  
 
+      - name: Upload directory if failed
+        if: failure()
+        uses: actions/upload-artifact@main
+        with:
+          name: whole-directory
+          path: .
+
       - name: Upload CV pdf as artifact
         uses: actions/upload-artifact@v2
         with:
