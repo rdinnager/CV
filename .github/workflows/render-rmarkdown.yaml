@@ -34,11 +34,11 @@ jobs:
           
       - name: Try just restoring the renv
         run: |
-          Rscript -e 'renv::restore()' >& output.txt
+          Rscript -e 'renv::restore()'
           
       - name: Render CV Rmarkdown file in capsule
         run: |
-          Rscript -e 'capsule::run_callr(function() rmarkdown::render("Russell_Dinnage_CV.Rmd"))' >& output_capsule.txt  
+          Rscript -e 'capsule::run_callr(function() rmarkdown::render("Russell_Dinnage_CV.Rmd"))'  
 
       - name: Upload directory if failed
         if: failure()
