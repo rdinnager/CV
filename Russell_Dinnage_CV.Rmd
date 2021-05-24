@@ -60,6 +60,8 @@ tribble(
 scholar_id <- "GU6p2KoAAAAJ"
 orcid_id <- "0000-0003-0846-2819"
 
+ed <- orcid_educations(orcid_id)
+
 works <- works(orcid_id) 
   
 works <- works %>%
@@ -75,7 +77,7 @@ works <- works %>%
   mutate(doi = modify_if(doi, ~ length(.x) == 0, ~NA_character_) %>%
            flatten_chr())
 
-pubs <- scholar::get_publications(scholar_id) %>%
+pubs <- get_publications(scholar_id) %>%
   dplyr::mutate(author = author %>% 
                   as.character %>% 
                   str_conv("UTF-8") %>%
@@ -91,7 +93,7 @@ pubs <- scholar::get_publications(scholar_id) %>%
 
 long_auth <- stringr::str_detect(pubs$author, "\\.\\.\\.")
 
-pubs$author[long_auth] <- purrr::map_chr(pubs$pubid[long_auth], ~ scholar::get_complete_authors(scholar_id, .))
+pubs$author[long_auth] <- purrr::map_chr(pubs$pubid[long_auth], ~ get_complete_authors(scholar_id, .))
   
 #pubs$title[!tolower(pubs$title) %in% tolower(works$title.title.value)]
 
@@ -121,7 +123,7 @@ peer_reviewed <- pubs %>%
 peer_reviewed %>%
   brief_entries(what = glue("{author} ({year}). {title}. \\textit{{{journal}}}. {number}. doi:{doi}"),
                 when = year,
-                with = glue("\n{ifelse(cites > 0, paste0('\\textbf{Google Scholar Citations:} ', cites, '; '), '')}{ifelse(altmetric > 0, paste0('\\textbf{Altmetric Score:} ', altmetric, ';'), '')}"),
+                with = glue("\n{ifelse(cites > 0, paste0('\\\\textbf{Google Scholar Citations:} ', cites, '; '), '')}{ifelse(altmetric > 0, paste0('\\\\textbf{Altmetric Score:} ', altmetric, ';'), '')}"),
                 .protect = FALSE)
 
 ```
