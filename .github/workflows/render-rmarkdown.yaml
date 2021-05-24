@@ -18,6 +18,11 @@ jobs:
       - name: Install pandoc
         run: |
           brew install pandoc
+          
+      - name: Install dependencies (capsule)
+        run: |
+          remotes::install_github("MilesMcBain/capsule")
+        shell: Rscript {0}
 
       - name: Cache Renv packages
         uses: actions/cache@v2
@@ -30,3 +35,8 @@ jobs:
         run: |
           Rscript -e 'capsule::run_callr(function() rmarkdown::render("Russell_Dinnage_CV.Rmd"))'  
 
+      - name: Upload CV pdf as artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: RD_CV
+          path: Russell_Dinnage_CV.pdf
