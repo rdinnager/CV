@@ -1,0 +1,8 @@
+library(vitae)
+library(dplyr)
+library(glue)
+library(stringr)
+library(rorcid)
+library(purrr)
+library(rAltmetric)
+library(fuzzyjoin)

@@ -1,0 +1,32 @@
+on:
+  push
+
+jobs:
+  build:
+    runs-on: macOS-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Setup R
+        uses: r-lib/actions/setup-r@v1
+
+      - name: Install pandoc
+        run: |
+          brew install pandoc
+
+      - name: Cache Renv packages
+        uses: actions/cache@v2
+        with:
+          path: renv
+          key: r-${{ hashFiles('renv.lock') }}
+          restore-keys: r-
+
+      - name: Render CV Rmarkdown file in capsule
+        run: |
+          Rscript -e 'capsule::run_callr(function() rmarkdown::render("Russell_Dinnage_CV.Rmd"))'  
+
