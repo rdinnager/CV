@@ -1,5 +1,7 @@
 on:
-  push
+  workflow_dispatch
+  schedule:
+    - cron: '17 1 * * 3'
 
 jobs:
   build:
@@ -45,10 +47,17 @@ jobs:
 
       - name: Upload directory if failed
         if: failure()
-        uses: actions/upload-artifact@main
+        uses: actions/upload-artifact@v2
         with:
           name: whole-directory
           path: .
+      
+      - name: Commit results
+        run: |
+          git config --local user.name "$GITHUB_ACTOR"
+          git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
+          git commit Russell_Dinnage_CV.pdf -m 'Re-build CV' || echo "No changes to commit"
+          git push origin || echo "No changes to commit"
 
       - name: Upload CV pdf as artifact
         uses: actions/upload-artifact@v2

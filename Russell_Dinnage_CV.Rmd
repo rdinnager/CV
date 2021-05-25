@@ -8,7 +8,6 @@ www: www.mepheo.science
 email: "r.dinnage@gmail.com"
 twitter: ecologician
 github: rdinnager
-linkedin: 
 date: "`r format(Sys.time(), '%B %Y')`"
 output: 
   vitae::moderncv:
@@ -18,50 +17,54 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 source("R/packages.R")
+scholar_id <- "GU6p2KoAAAAJ"
+orcid_id <- "0000-0003-0846-2819"
 ```
 
-# Some stuff about me
+# Academic Positions
 
- * I poisoned myself doing research.
- * I was the first woman to win a Nobel prize
- * I was the first person and only woman to win a Nobel prize in two different sciences.
+```{r pos}
+
+positions <- orcid_employments(orcid_id)
+positions[[1]]$`affiliation-group`$summaries %>%
+  map_dfr(~tibble(start = paste(.x$`employment-summary.start-date.year.value` %||% "",
+                               .x$`employment-summary.start-date.month.value` %||% "",
+                               sep = "-"),
+                  end = paste(.x$`employment-summary.end-date.year.value` %||% "",
+                               .x$`employment-summary.end-date.month.value` %||% "",
+                               sep = "-"),
+                  what = .x$`employment-summary.role-title`,
+                  where = paste0(ifelse(is.na(.x$`employment-summary.department-name`),
+                                        "", paste0(.x$`employment-summary.department-name`,
+                                                   ", ")),
+                                 .x$`employment-summary.organization.name`),
+                  city = paste0(.x$`employment-summary.organization.address.city`,
+                                ", ", 
+                                .x$`employment-summary.organization.address.country`))) %>%
+  mutate(end = ifelse(end == "-", "present", end)) %>%
+  detailed_entries(what = what,
+                   when = glue("{start} - {end}"),
+                   where = city,
+                   with = where)
+
+
+```
 
 # Education
 
-```{r}
-library(tibble)
-tribble(
-  ~ Degree, ~ Year, ~ Institution, ~ Where,
-  "Informal studies", "1889-91", "Flying University", "Warsaw, Poland",
-  "Master of Physics", "1893", "Sorbonne Université", "Paris, France",
-  "Master of Mathematics", "1894", "Sorbonne Université", "Paris, France"
-) %>% 
-  detailed_entries(Degree, Year, Institution, Where)
-```
-
-# Nobel Prizes
-
-```{r}
-tribble(
-  ~Year, ~Type, ~Desc,
-  1903, "Physics", "Awarded for her work on radioactivity with Pierre Curie and Henri Becquerel",
-  1911, "Chemistry", "Awarded for the discovery of radium and polonium"
-) %>% 
-  brief_entries(
-    glue::glue("Nobel Prize in {Type}"),
-    Year, 
-    Desc
-  )
-```
-
-# Publications
-
-```{r}
-scholar_id <- "GU6p2KoAAAAJ"
-orcid_id <- "0000-0003-0846-2819"
-
+```{r edu}
 ed <- orcid_educations(orcid_id)
+ed[[1]]$`affiliation-group`$summaries %>%
+  bind_rows() %>%
+  brief_entries(what = `education-summary.role-title`,
+                when = glue("{`education-summary.end-date.month.value`}-{`education-summary.end-date.year.value`}"),
+                with = `education-summary.organization.name`)
 
+```
+
+# Publications (as of `r format(Sys.time(), '%B %Y')`)
+
+```{r pubs}
 works <- works(orcid_id) 
   
 works <- works %>%
@@ -118,13 +121,17 @@ pubs <- pubs %>%
 
 peer_reviewed <- pubs %>%
   filter(type == "peer-reviewed") %>% 
-  distinct(title, .keep_all = TRUE)
+  distinct(title, .keep_all = TRUE) %>%
+  mutate(pub_num = paste0(n():1, "."))
 
 peer_reviewed %>%
   brief_entries(what = glue("{author} ({year}). {title}. \\textit{{{journal}}}. {number}. doi:{doi}"),
-                when = year,
+                when = pub_num,
                 with = glue("\n{ifelse(cites > 0, paste0('\\\\textbf{Google Scholar Citations:} ', cites, '; '), '')}{ifelse(altmetric > 0, paste0('\\\\textbf{Altmetric Score:} ', altmetric, ';'), '')}"),
                 .protect = FALSE)
 
 ```
+
+
+* This CV is auto-generated using R once a week. See <https://github.com/rdinnager/CV> for the code.
 
