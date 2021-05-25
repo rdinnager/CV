@@ -38,7 +38,8 @@ jobs:
           
       - name: Render CV Rmarkdown file in capsule
         run: |
-          Rscript -e 'capsule::run_callr(function() rmarkdown::render("Russell_Dinnage_CV.Rmd"))'  
+          capsule::run_callr(function() rmarkdown::render("Russell_Dinnage_CV.Rmd"))  
+        shell: Rscript {0}
 
       - name: Upload directory if failed
         if: failure()
