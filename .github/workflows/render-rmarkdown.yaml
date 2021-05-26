@@ -27,12 +27,12 @@ jobs:
           remotes::install_github("MilesMcBain/capsule")
         shell: Rscript {0}
 
-      - name: Cache Renv packages
-        uses: actions/cache@v2
-        with:
-          path: renv
-          key: r-${{ hashFiles('renv.lock') }}
-          restore-keys: r-
+      # - name: Cache Renv packages
+      #   uses: actions/cache@v2
+      #   with:
+      #     path: renv
+      #     key: r-${{ hashFiles('renv.lock') }}
+      #     restore-keys: r-
           
       - name: Try just restoring the renv
         run: |
