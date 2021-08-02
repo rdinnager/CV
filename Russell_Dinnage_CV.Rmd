@@ -96,7 +96,8 @@ pubs <- get_publications(scholar_id) %>%
 
 long_auth <- stringr::str_detect(pubs$author, "\\.\\.\\.")
 
-pubs$author[long_auth] <- purrr::map_chr(pubs$pubid[long_auth], ~ get_complete_authors(scholar_id, .))
+#pubs$author[long_auth] <- purrr::map_chr(pubs$pubid[long_auth], ~ get_complete_authors(scholar_id, .))
+pubs$author[long_auth] <- get_complete_authors(scholar_id, pubs$pubid[long_auth])
   
 #pubs$title[!tolower(pubs$title) %in% tolower(works$title.title.value)]
 
